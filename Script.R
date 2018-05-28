@@ -254,29 +254,62 @@ datos<-read.csv('Datos/Milenials.csv', header = T, sep = ';')
 ###################### Inferencia ########################################
       
       ### Frecuencia de compra 
-   FC<-datos  %>%  count(Sexo, Frecuencia_compra)%>%            
+      
+      datos$Frecuencia_compra<-factor(datos$Frecuencia_compra, 
+                                      levels = levels(datos$Frecuencia_compra), labels = c('3 a 4', '2', 
+                                                                                           '0', '1', '12', '52'))
+      
+      
+      datos2<-datos %>%
+        mutate(Frecuencia_compra= recode(Frecuencia_compra,
+                                          "c('1', '2')='1 a 2'"))
+      
+      ## Debido a la baja frecuencia se juntarán algunas categorías como acontinuación: 
+      
+      
+      # Sexo 
+      
+      
+   FC<-datos2 %>%  count(Sexo, Frecuencia_compra)%>%            
         mutate(prop = prop.table(n)) 
       
       
-      fc2<-table(datos$Sexo,datos$Frecuencia_compra)
-      chisq.test(fc2)
+      fc2<-table(datos2$Sexo,datos2$Frecuencia_compra)
+      chisq.test(fc2, simulate.p.value = T)
       
       assoc(fc2)
       assocstats(fc2)
       
-      fc3<-table(datos$Combine_nueva,datos$Frecuencia_compra)
+      FC$Frecuencia_compra <- factor(FC$Frecuencia_compra , levels = FC$Frecuencia_compra[order(-FC$Frecuencia_compra )])
+      ggplot(FC, aes(x=FC$Frecuencia_compra,y=prop*100)) +
+        geom_bar(stat="identity", position="stack", aes(fill=Sexo)) +
+        coord_flip() +
+        theme_minimal() +
+        theme(legend.position="bottom") + scale_fill_brewer(palette = "Dark2")
+      
+      
+      ## Combine nueva  
+      
+      
+      FC_cn<-datos2 %>%  count(Combine_nueva, Frecuencia_compra)%>%            
+        mutate(prop = prop.table(n)) 
+      
+      fc3<-table(datos2$Combine_nueva,datos2$Frecuencia_compra)
       chisq.test(fc3)
       assocstats(fc3)
+      ggplot(FC_cn, aes(x=FC_cn$Frecuencia_compra,y=prop*100)) +
+        geom_bar(stat="identity", position="stack", aes(fill=Combine_nueva)) +
+        coord_flip() +
+        theme_minimal() +
+        theme(legend.position="bottom") + scale_fill_brewer(palette = "Dark2")
       
       
       
-      chisq.test(xtabs( ~datos$Combine_nueva+datos$Impulso_compra))
+      chisq.test(xtabs( ~datos$Estrato+datos$Combine_nueva))
       
       
       
-      
-      
-      
+    
       
       gg_prop <- ggplot(data = data.frame()
                   , aes(x = Sexo, y = prop, fill = Info_etiqueta)) + 
